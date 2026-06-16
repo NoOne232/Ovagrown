@@ -134,7 +134,24 @@ fun DailyUsageRow(
 ) {
     val goalMinutes = 30
     val progress = (dayUsage.timeUsedMinutes / goalMinutes.toFloat()).coerceAtMost(1f)
-    val isUnderLimit = dayUsage.timeUsedMinutes < goalMinutes
+
+    val usageStatusText = when {
+        dayUsage.timeUsedMinutes < goalMinutes -> "Within limit ✓"
+        dayUsage.timeUsedMinutes == goalMinutes -> "Limit reached !"
+        else -> "Limit exceeded ×"
+    }
+
+    val statusColor = when {
+        dayUsage.timeUsedMinutes < goalMinutes -> Color(0xFF2E7D32)
+        dayUsage.timeUsedMinutes == goalMinutes -> Color(0xFFF57C00)
+        else -> Color(0xFFB00020)
+    }
+
+    val progressColor = when {
+        dayUsage.timeUsedMinutes < goalMinutes -> Color(0xFF81C784)
+        dayUsage.timeUsedMinutes == goalMinutes -> Color(0xFFFFB74D)
+        else -> Color(0xFFE57373)
+    }
 
     Column {
         Row(
@@ -150,9 +167,10 @@ fun DailyUsageRow(
             )
 
             Text(
-                text = "${dayUsage.timeUsedMinutes}/30 mins ${if (isUnderLimit) "✓" else "×"}",
+                text = usageStatusText,
                 fontSize = 16.sp,
-                color = if (isUnderLimit) Color(0xFF2E7D32) else Color(0xFFB00020)
+                fontWeight = FontWeight.Medium,
+                color = statusColor
             )
         }
 
@@ -164,7 +182,7 @@ fun DailyUsageRow(
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(RoundedCornerShape(20.dp)),
-            color = if (isUnderLimit) Color(0xFF81C784) else Color(0xFFE57373),
+            color = progressColor,
             trackColor = Color(0xFFE6E0D4)
         )
     }
