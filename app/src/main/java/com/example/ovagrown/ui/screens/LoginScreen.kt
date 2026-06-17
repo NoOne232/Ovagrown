@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,16 +43,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ovagrown.R
+import com.example.ovagrown.database.Authentication
+import com.example.ovagrown.database.ProfileFunctions
 import com.example.ovagrown.ui.theme.OVAgrownTheme
+import kotlinx.coroutines.launch
 
 val TropiLandFont = FontFamily(
     Font(R.font.tropi_land)
 )
 
 @Composable
-fun LoginScreen() {
-
+fun LoginScreen(
+    onLoginSuccess: () -> Unit = {}
+) {
     var showLoginPopup by remember { mutableStateOf(false) }
+
+    val authentication = remember { Authentication() }
+    val profileFunctions = remember { ProfileFunctions() }
 
     val infiniteTransition = rememberInfiniteTransition(label = "fade")
 
@@ -103,18 +111,39 @@ fun LoginScreen() {
                     showLoginPopup = false
                 },
                 onLoginClick = { email, password ->
-                    println("Logging in with email: $email")
-                    println("Password: $password")
+                    val userId = authentication.login(email, password)
 
-                    // Later: connect this to Supabase/Firebase authentication
-                    showLoginPopup = false
+                    println("Logged in user ID: $userId")
+
+                    onLoginSuccess()
                 },
                 onSignUpClick = { email, password ->
-                    println("Creating account with email: $email")
-                    println("Password: $password")
+                    authentication.signUp(
+                        email = email,
+                        password = password
+                    )
 
-                    // Later: connect this to Supabase/Firebase signup
-                    showLoginPopup = false
+                    var userId = authentication.getCurrentUserId()
+
+                    if (userId == null) {
+                        userId = authentication.login(
+                            email = email,
+                            password = password
+                        )
+                    }
+
+                    if (userId == null) {
+                        throw IllegalStateException(
+                            "Account was created, but the user ID could not be found."
+                        )
+                    }
+
+                    profileFunctions.createProfile(
+                        userId = userId,
+                        username = email
+                    )
+
+                    println("Account and profile created for: $email")
                 }
             )
         }
@@ -124,8 +153,8 @@ fun LoginScreen() {
 @Composable
 fun LoginSignupPopup(
     onDismiss: () -> Unit,
-    onLoginClick: (String, String) -> Unit,
-    onSignUpClick: (String, String) -> Unit
+    onLoginClick: suspend (String, String) -> Unit,
+    onSignUpClick: suspend (String, String) -> Unit
 ) {
     var isSignUpMode by remember { mutableStateOf(false) }
 
@@ -137,7 +166,10 @@ fun LoginSignupPopup(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     val titleText = if (isSignUpMode) {
         "Create your account"
@@ -153,6 +185,7 @@ fun LoginSignupPopup(
 
     fun submitForm() {
         errorMessage = null
+        successMessage = null
 
         when {
             email.isBlank() -> {
@@ -182,13 +215,25 @@ fun LoginSignupPopup(
             else -> {
                 isLoading = true
 
-                if (isSignUpMode) {
-                    onSignUpClick(email, password)
-                } else {
-                    onLoginClick(email, password)
-                }
+                coroutineScope.launch {
+                    try {
+                        if (isSignUpMode) {
+                            onSignUpClick(email, password)
 
-                isLoading = false
+                            successMessage = "Account created. You can now log in."
+                            isSignUpMode = false
+                            password = ""
+                            confirmPassword = ""
+                        } else {
+                            onLoginClick(email, password)
+                            onDismiss()
+                        }
+                    } catch (e: Exception) {
+                        errorMessage = e.message ?: "Something went wrong. Please try again."
+                    } finally {
+                        isLoading = false
+                    }
+                }
             }
         }
     }
@@ -297,10 +342,19 @@ fun LoginSignupPopup(
                     )
                 }
 
+                if (successMessage != null) {
+                    Text(
+                        text = successMessage ?: "",
+                        color = Color(0xFF17721D),
+                        fontSize = 14.sp
+                    )
+                }
+
                 TextButton(
                     onClick = {
                         isSignUpMode = !isSignUpMode
                         errorMessage = null
+                        successMessage = null
                         password = ""
                         confirmPassword = ""
                     },
@@ -342,9 +396,6 @@ fun LoginSignupPopup(
     )
 }
 
-@Preview(
-    showBackground = true
-)
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
@@ -352,4 +403,3 @@ fun LoginScreenPreview() {
         LoginScreen()
     }
 }
-

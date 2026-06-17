@@ -1,14 +1,9 @@
 package com.example.ovagrown.ui.screens
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,18 +14,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,25 +34,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ovagrown.R
+import com.example.ovagrown.ui.components.AppBottomNavigationBar
+import com.example.ovagrown.ui.components.BottomNavPage
 import com.example.ovagrown.ui.state.HomeUiState
 import com.example.ovagrown.ui.theme.OVAgrownTheme
 import com.example.ovagrown.ui.viewmodel.HomeViewModel
 
 @Composable
 fun HomeRoute(
-    homeViewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
+    onSettingsClick: () -> Unit = {},
+    onStatsClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {},
+    onRewardsClick: () -> Unit = {},
+    onTimerClick: () -> Unit = {}
 ) {
     val uiState by homeViewModel.uiState.collectAsState()
 
     HomeScreen(
-        uiState = uiState
+        uiState = uiState,
+        onSettingsClick = onSettingsClick,
+        onStatsClick = onStatsClick,
+        onHomeClick = onHomeClick,
+        onRewardsClick = onRewardsClick,
+        onTimerClick = onTimerClick
     )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(
-    uiState: HomeUiState
+    uiState: HomeUiState,
+    onSettingsClick: () -> Unit = {},
+    onStatsClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {},
+    onRewardsClick: () -> Unit = {},
+    onTimerClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -97,7 +106,13 @@ fun HomeScreen(
             )
         }
 
-        BottomNavigationBar(
+        AppBottomNavigationBar(
+            selectedPage = BottomNavPage.Home,
+            onSettingsClick = onSettingsClick,
+            onStatsClick = onStatsClick,
+            onHomeClick = onHomeClick,
+            onRewardsClick = onRewardsClick,
+            onTimerClick = onTimerClick,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
@@ -363,121 +378,6 @@ fun AppTrackedChip(
     }
 }
 
-@Composable
-fun BottomNavigationBar(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(92.dp)
-            .navigationBarsPadding()
-            .padding(horizontal = 28.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        BottomNavIcon(
-            icon = R.drawable.ic_settings,
-            contentDescription = "Settings",
-            selected = false,
-            onClick = {
-                println("Settings clicked")
-            }
-        )
-
-        BottomNavIcon(
-            icon = R.drawable.ic_stats,
-            contentDescription = "Stats",
-            selected = false,
-            onClick = {
-                println("Stats clicked")
-            }
-        )
-
-        BottomNavIcon(
-            icon = R.drawable.ic_home,
-            contentDescription = "Home",
-            selected = true,
-            onClick = {
-                println("Home clicked")
-            }
-        )
-
-        BottomNavIcon(
-            icon = R.drawable.ic_rewards,
-            contentDescription = "Rewards",
-            selected = false,
-            onClick = {
-                println("Rewards clicked")
-            }
-        )
-
-        BottomNavIcon(
-            icon = R.drawable.ic_timer,
-            contentDescription = "Timer",
-            selected = false,
-            onClick = {
-                println("Timer clicked")
-            }
-        )
-    }
-}
-
-@Composable
-fun BottomNavIcon(
-    icon: Int,
-    contentDescription: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val normalIconSize = if (selected) {
-        38.dp
-    } else {
-        31.dp
-    }
-
-    val pressedIconSize = if (selected) {
-        34.dp
-    } else {
-        28.dp
-    }
-
-    val animatedIconSize by animateDpAsState(
-        targetValue = if (isPressed) pressedIconSize else normalIconSize,
-        animationSpec = tween(durationMillis = 120),
-        label = "navIconPressAnimation"
-    )
-
-    val iconColor = if (selected) {
-        Color.White
-    } else {
-        Color(0xFFB8E6B8)
-    }
-
-    Box(
-        modifier = Modifier
-            .size(54.dp)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) {
-                onClick()
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = contentDescription,
-            tint = iconColor,
-            modifier = Modifier.size(animatedIconSize)
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenOnlyPreview() {
@@ -487,7 +387,7 @@ fun HomeScreenOnlyPreview() {
                 usedMinutesToday = 10,
                 dailyLimitMinutes = 30,
                 monitoringOn = true,
-                trackedApps = listOf("Instagram", "TikTok", "YouTube Shorts","lol"),
+                trackedApps = listOf("Instagram", "TikTok", "YouTube Shorts", "lol"),
                 profileImageResId = R.drawable.app_icon
             )
         )

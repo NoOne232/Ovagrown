@@ -33,6 +33,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ovagrown.R
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Scaffold
+import com.example.ovagrown.ui.components.AppBottomNavigationBar
+import com.example.ovagrown.ui.components.BottomNavPage
 
 data class DayUsage(
     val dayName: String,
@@ -56,53 +60,76 @@ data class SummaryUiState(
 
 @Composable
 fun SummaryScreen(
-    uiState: SummaryUiState
+    uiState: SummaryUiState,
+    onSettingsClick: () -> Unit = {},
+    onStatsClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {},
+    onRewardsClick: () -> Unit = {},
+    onTimerClick: () -> Unit = {}
 ) {
     val thisWeekAverage = averageUsage(uiState.thisWeekUsage)
     val lastWeekAverage = averageUsage(uiState.lastWeekUsage)
     val difference = thisWeekAverage - lastWeekAverage
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF7F3E8))
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
-        item {
-            Text(
-                text = "Weekly Summary",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2F4F2F)
+    Scaffold(
+        containerColor = Color(0xFFF7F3E8),
+        bottomBar = {
+            AppBottomNavigationBar(
+                selectedPage = BottomNavPage.Stats,
+                onSettingsClick = onSettingsClick,
+                onStatsClick = onStatsClick,
+                onHomeClick = onHomeClick,
+                onRewardsClick = onRewardsClick,
+                onTimerClick = onTimerClick
             )
         }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp),
+            contentPadding = PaddingValues(
+                top = 20.dp,
+                bottom = 120.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            item {
+                Text(
+                    text = "Weekly Summary",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2F4F2F)
+                )
+            }
 
-        item {
-            DailyUsageSection(
-                weekUsage = uiState.thisWeekUsage
-            )
-        }
+            item {
+                DailyUsageSection(
+                    weekUsage = uiState.thisWeekUsage
+                )
+            }
 
-        item {
-            PlayerIconsOwnedSection(
-                icons = uiState.playerIcons
-            )
-        }
+            item {
+                PlayerIconsOwnedSection(
+                    icons = uiState.playerIcons
+                )
+            }
 
-        item {
-            AverageScrollTimeSection(
-                thisWeekAverage = thisWeekAverage,
-                lastWeekAverage = lastWeekAverage,
-                difference = difference
-            )
-        }
+            item {
+                AverageScrollTimeSection(
+                    thisWeekAverage = thisWeekAverage,
+                    lastWeekAverage = lastWeekAverage,
+                    difference = difference
+                )
+            }
 
-        item {
-            StreakSection(
-                currentStreak = uiState.currentStreak,
-                longestStreak = uiState.longestStreak
-            )
+            item {
+                StreakSection(
+                    currentStreak = uiState.currentStreak,
+                    longestStreak = uiState.longestStreak
+                )
+            }
         }
     }
 }
