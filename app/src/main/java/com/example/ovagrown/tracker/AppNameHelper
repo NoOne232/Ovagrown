@@ -1,0 +1,32 @@
+package com.example.ovagrown.tracker
+
+import android.content.Context
+
+object AppNameHelper {
+
+    fun getAppName(
+        context: Context,
+        packageName: String
+    ): String {
+
+        return try {
+
+            val pm =
+                context.packageManager
+
+            val applicationInfo =
+                pm.getApplicationInfo(
+                    packageName,
+                    0
+                )
+
+            pm.getApplicationLabel(
+                applicationInfo
+            ).toString()
+
+        } catch (e: Exception) {
+
+            packageName.substringAfterLast(".")
+        }
+    }
+}
