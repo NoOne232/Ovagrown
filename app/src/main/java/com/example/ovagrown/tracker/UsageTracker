@@ -1,0 +1,51 @@
+package com.example.ovagrown.tracker
+
+import android.app.usage.UsageEvents
+import android.app.usage.UsageStatsManager
+import android.content.Context
+
+class UsageTracker(
+    private val context: Context
+) {
+
+    fun getCurrentApp(): String {
+
+        val usageStatsManager =
+            context.getSystemService(
+                Context.USAGE_STATS_SERVICE
+            ) as UsageStatsManager
+
+        val endTime =
+            System.currentTimeMillis()
+
+        val beginTime =
+            endTime - 1000 * 60
+
+        val events =
+            usageStatsManager.queryEvents(
+                beginTime,
+                endTime
+            )
+
+        var currentPackage = ""
+
+        val event =
+            UsageEvents.Event()
+
+        while (events.hasNextEvent()) {
+
+            events.getNextEvent(event)
+
+            if (
+                event.eventType ==
+                UsageEvents.Event.ACTIVITY_RESUMED
+            ) {
+
+                currentPackage =
+                    event.packageName
+            }
+        }
+
+        return currentPackage
+    }
+}
