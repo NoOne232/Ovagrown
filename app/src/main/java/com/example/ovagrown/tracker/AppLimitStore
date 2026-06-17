@@ -1,0 +1,71 @@
+package com.example.overgrown.tracker
+
+object AppLimitStore {
+
+    private val limits =
+        mutableMapOf<String, Long>()
+
+    fun setLimit(
+        packageName: String,
+        seconds: Long
+    ) {
+        limits[packageName] = seconds
+    }
+
+    fun setLimitFromTime(
+        packageName: String,
+        hours: Long,
+        minutes: Long,
+        seconds: Long
+    ) {
+
+        val totalSeconds =
+            (hours * 3600) +
+                    (minutes * 60) +
+                    seconds
+
+        limits[packageName] =
+            totalSeconds
+    }
+
+    fun getLimit(
+        packageName: String
+    ): Long {
+
+        return limits[packageName]
+            ?: 30L
+    }
+
+    fun getLimitHours(
+        packageName: String
+    ): Long {
+
+        return getLimit(packageName) / 3600
+    }
+
+    fun getLimitMinutes(
+        packageName: String
+    ): Long {
+
+        return (getLimit(packageName) % 3600) / 60
+    }
+
+    fun getLimitSeconds(
+        packageName: String
+    ): Long {
+
+        return getLimit(packageName) % 60
+    }
+
+    fun removeLimit(
+        packageName: String
+    ) {
+        limits.remove(packageName)
+    }
+
+    fun getAllLimits():
+            Map<String, Long> {
+
+        return limits.toMap()
+    }
+}
