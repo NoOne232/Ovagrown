@@ -1,0 +1,112 @@
+package com.example.ovagrown.tracker
+
+import android.content.Context
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+object AppUsageStore {
+
+    private val usageSeconds =
+        mutableMapOf<String, Long>()
+
+    private const val PREF_NAME =
+        "app_usage_daily_state"
+
+    private const val KEY_DATE =
+        "usage_date"
+
+    fun resetIfNewDay(
+        context: Context
+    ) {
+        val prefs =
+            context.getSharedPreferences(
+                PREF_NAME,
+                Context.MODE_PRIVATE
+            )
+
+        val today =
+            SimpleDateFormat(
+                "yyyy-MM-dd",
+                Locale.getDefault()
+            ).format(Date())
+
+        val savedDate =
+            prefs.getString(
+                KEY_DATE,
+                null
+            )
+
+        if (savedDate != today) {
+            usageSeconds.clear()
+
+            prefs.edit()
+                .putString(
+                    KEY_DATE,
+                    today
+                )
+                .apply()
+        }
+    }
+
+    fun addSecond(packageName: String) {
+        if (packageName == "Unknown") return
+        if (packageName == "com.example.overgrown") return
+        if (packageName.contains("launcher")) return
+
+        val current =
+            usageSeconds[packageName] ?: 0L
+
+        usageSeconds[packageName] =
+            current + 1L
+    }
+
+    fun getUsage(): Map<String, Long> {
+        return usageSeconds.toMap()
+    }
+
+    fun getUsageForApp(
+        packageName: String
+    ): Long {
+        return usageSeconds[packageName] ?: 0L
+    }
+
+    fun getLimit(
+        packageName: String
+    ): Long {
+        return AppLimitStore.getLimit(packageName)
+    }
+
+    fun getGrowthSeconds(
+        packageName: String
+    ): Long {
+        val usage =
+            getUsageForApp(packageName)
+
+        val limit =
+            getLimit(packageName)
+
+        return (usage - limit)
+            .coerceAtLeast(0L)
+    }
+
+    fun getFlowerCountForApp(
+        packageName: String
+    ): Int {
+        val secondsPerFlower =
+            3L
+
+        val growthSeconds =
+            getGrowthSeconds(packageName)
+
+        return (growthSeconds / secondsPerFlower)
+            .toInt()
+            .coerceIn(0, 120)
+    }
+
+    fun shouldShowOverlay(
+        packageName: String
+    ): Boolean {
+        return getGrowthSeconds(packageName) > 0L
+    }
+}
