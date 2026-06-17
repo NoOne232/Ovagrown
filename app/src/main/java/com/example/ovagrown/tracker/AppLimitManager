@@ -1,0 +1,186 @@
+package com.example.ovagrown.tracker
+
+import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+
+data class InstalledAppInfo(
+    val packageName: String,
+    val displayName: String,
+    val limitSeconds: Long
+)
+
+object AppLimitManager {
+
+    private const val PREF_NAME =
+        "overgrown_app_limits"
+
+    private const val DEFAULT_LIMIT_SECONDS =
+        30L
+
+    fun getInstalledApps(
+        context: Context
+    ): List<InstalledAppInfo> {
+
+        val packageManager =
+            context.packageManager
+
+        val apps =
+            packageManager.getInstalledApplications(
+                PackageManager.GET_META_DATA
+            )
+
+        return apps
+            .filter { app ->
+                packageManager.getLaunchIntentForPackage(
+                    app.packageName
+                ) != null
+            }
+            .filter { app ->
+                app.packageName != context.packageName
+            }
+            .map { app ->
+                InstalledAppInfo(
+                    packageName = app.packageName,
+                    displayName =
+                        packageManager.getApplicationLabel(
+                            app
+                        ).toString(),
+                    limitSeconds =
+                        getLimit(
+                            context,
+                            app.packageName
+                        )
+                )
+            }
+            .sortedBy {
+                it.displayName.lowercase()
+            }
+    }
+
+    fun setLimit(
+        context: Context,
+        packageName: String,
+        totalSeconds: Long
+    ) {
+        val safeSeconds =
+            totalSeconds.coerceAtLeast(0L)
+
+        context.getSharedPreferences(
+            PREF_NAME,
+            Context.MODE_PRIVATE
+        )
+            .edit()
+            .putLong(
+                packageName,
+                safeSeconds
+            )
+            .apply()
+
+        AppLimitStore.setLimit(
+            packageName,
+            safeSeconds
+        )
+    }
+
+    fun setLimitFromTime(
+        context: Context,
+        packageName: String,
+        hours: Long,
+        minutes: Long,
+        seconds: Long
+    ) {
+        val totalSeconds =
+            (hours.coerceAtLeast(0L) * 3600L) +
+                    (minutes.coerceAtLeast(0L) * 60L) +
+                    seconds.coerceAtLeast(0L)
+
+        setLimit(
+            context,
+            packageName,
+            totalSeconds
+        )
+    }
+
+    fun getLimit(
+        context: Context,
+        packageName: String
+    ): Long {
+
+        val savedLimit =
+            context.getSharedPreferences(
+                PREF_NAME,
+                Context.MODE_PRIVATE
+            )
+                .getLong(
+                    packageName,
+                    -1L
+                )
+
+        return if (savedLimit >= 0L) {
+            savedLimit
+        } else {
+            AppLimitStore.getLimit(packageName)
+                .takeIf { it > 0L }
+                ?: DEFAULT_LIMIT_SECONDS
+        }
+    }
+
+    fun removeLimit(
+        context: Context,
+        packageName: String
+    ) {
+        context.getSharedPreferences(
+            PREF_NAME,
+            Context.MODE_PRIVATE
+        )
+            .edit()
+            .remove(packageName)
+            .apply()
+
+        AppLimitStore.removeLimit(packageName)
+    }
+
+    fun getLimitHours(
+        context: Context,
+        packageName: String
+    ): Long {
+        return getLimit(
+            context,
+            packageName
+        ) / 3600L
+    }
+
+    fun getLimitMinutes(
+        context: Context,
+        packageName: String
+    ): Long {
+        return (
+                getLimit(
+                    context,
+                    packageName
+                ) % 3600L
+                ) / 60L
+    }
+
+    fun getLimitSeconds(
+        context: Context,
+        packageName: String
+    ): Long {
+        return getLimit(
+            context,
+            packageName
+        ) % 60L
+    }
+
+    fun shouldShowOverlay(
+        context: Context,
+        packageName: String,
+        usedSeconds: Long
+    ): Boolean {
+        return usedSeconds >= getLimit(
+            context,
+            packageName
+        )
+    }
+}
