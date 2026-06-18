@@ -1,4 +1,4 @@
-package com.example.ovagrown.timer
+package com.example.overgrown.timer
 
 import android.content.Context
 
@@ -63,4 +63,3 @@ class TimerRepository(
         private const val KEY_END_TIME_MILLIS = "end_time_millis"
     }
 }
-
