@@ -1,0 +1,22 @@
+package com.example.ovagrown.accessibility
+
+import android.accessibilityservice.AccessibilityService
+import android.view.accessibility.AccessibilityEvent
+import android.util.Log
+
+class OvergrownAccessibilityService : AccessibilityService() {
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        Log.d("OvergrownAccess", "Accessibility service connected")
+    }
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        val packageName = event?.packageName?.toString()
+        Log.d("OvergrownAccess", "Current app: $packageName")
+    }
+
+    override fun onInterrupt() {
+        Log.d("OvergrownAccess", "Accessibility service interrupted")
+    }
+}
