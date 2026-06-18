@@ -1,4 +1,4 @@
-package com.example.ovagrown.timer
+package com.example.overgrown.timer
 
 import android.content.Context
 import java.time.LocalDate
@@ -31,15 +31,13 @@ class DailyScrollRepository(
 
         val sessionStartMillis = prefs.getLong(KEY_SESSION_START_MILLIS, 0L)
 
-        if (sessionStartMillis == 0L) {
-            return
-        }
+        if (sessionStartMillis == 0L) return
 
         val now = System.currentTimeMillis()
         val sessionSeconds = ((now - sessionStartMillis) / 1000L).toInt()
 
         val currentUsedSeconds = prefs.getInt(KEY_USED_SECONDS_TODAY, 0)
-        val newUsedSeconds = (currentUsedSeconds + sessionSeconds).coerceAtMost(DAILY_LIMIT_SECONDS)
+        val newUsedSeconds = currentUsedSeconds + sessionSeconds
 
         prefs.edit()
             .putInt(KEY_USED_SECONDS_TODAY, newUsedSeconds)
@@ -60,21 +58,21 @@ class DailyScrollRepository(
         val sessionStartMillis = prefs.getLong(KEY_SESSION_START_MILLIS, 0L)
 
         if (sessionStartMillis == 0L) {
-            return savedUsedSeconds.coerceAtMost(DAILY_LIMIT_SECONDS)
+            return savedUsedSeconds
         }
 
         val activeSessionSeconds =
             ((System.currentTimeMillis() - sessionStartMillis) / 1000L).toInt()
 
-        return (savedUsedSeconds + activeSessionSeconds).coerceAtMost(DAILY_LIMIT_SECONDS)
+        return savedUsedSeconds + activeSessionSeconds
     }
 
     fun getRemainingSecondsToday(): Int {
-        return (DAILY_LIMIT_SECONDS - getUsedSecondsToday()).coerceAtLeast(0)
+        return getUsedSecondsToday()
     }
 
     fun hasReachedDailyLimit(): Boolean {
-        return getUsedSecondsToday() >= DAILY_LIMIT_SECONDS
+        return false
     }
 
     fun isSessionRunning(): Boolean {
@@ -104,4 +102,3 @@ class DailyScrollRepository(
         private const val KEY_SESSION_START_MILLIS = "session_start_millis"
     }
 }
-
