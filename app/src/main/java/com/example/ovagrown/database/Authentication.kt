@@ -1,4 +1,4 @@
-package com.example.ovagrown.database
+package com.example.overgrown.database
 
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
