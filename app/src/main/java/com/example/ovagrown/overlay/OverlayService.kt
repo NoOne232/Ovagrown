@@ -1,4 +1,4 @@
-package com.example.ovagrown.overlay
+package com.example.overgrown.overlay
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -62,7 +62,17 @@ class OverlayService : Service() {
 
     private val keyDate =
         "growth_date"
+    companion object {
+        fun start(context: Context) {
+            val intent = Intent(context, OverlayService::class.java)
+            context.startService(intent)
+        }
 
+        fun stop(context: Context) {
+            val intent = Intent(context, OverlayService::class.java)
+            context.stopService(intent)
+        }
+    }
     override fun onCreate() {
         super.onCreate()
 
@@ -100,12 +110,14 @@ class OverlayService : Service() {
 
                         if (
                             AppUsageStore.shouldShowOverlay(
-                                currentApp
+                                context = applicationContext,
+                                packageName = currentApp
                             )
                         ) {
                             val targetFlowerCount =
                                 AppUsageStore.getFlowerCountForApp(
-                                    currentApp
+                                    context = applicationContext,
+                                    packageName = currentApp
                                 )
 
                             switchToApp(
@@ -342,7 +354,7 @@ class OverlayService : Service() {
 
                     flowerView.pauseAnimation()
 
-                   
+
                 }
             }
         )
