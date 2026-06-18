@@ -1,8 +1,8 @@
-package com.example.ovagrown.database
+package com.example.overgrown.database
 
-import com.example.ovagrown.structures.UserProfile
-import com.example.ovagrown.database.SupabaseClient
-import com.example.ovagrown.functional.Friend_Code_Gen
+import com.example.overgrown.structures.UserProfile
+import com.example.overgrown.database.SupabaseClient
+import com.example.overgrown.functional.Friend_Code_Gen
 import io.github.jan.supabase.postgrest.from
 
 class ProfileFunctions{
