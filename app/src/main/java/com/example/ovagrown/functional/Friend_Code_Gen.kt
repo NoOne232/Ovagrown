@@ -1,7 +1,7 @@
-package com.example.ovagrown.functional
+package com.example.overgrown.functional
 
-import com.example.ovagrown.database.SupabaseClient
-import com.example.ovagrown.structures.UserProfile
+import com.example.overgrown.database.SupabaseClient
+import com.example.overgrown.structures.UserProfile
 import io.github.jan.supabase.postgrest.from
 import kotlin.random.Random
 
@@ -45,4 +45,3 @@ class Friend_Code_Gen {
         return friendId
     }
 }
-
